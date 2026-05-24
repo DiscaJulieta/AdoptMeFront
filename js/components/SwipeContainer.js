@@ -105,12 +105,10 @@ export class SwipeContainer {
 
     this.emptyState
       .on('refresh', () => {
-        console.log('🔄 Usuario solicitó recargar...');
         this.reset();
         this.loadMorePets();
       })
       .on('retry', () => {
-        console.log('🔄 Usuario solicitó reintentar...');
         this.loadMorePets();
       })
       .showEmpty();
@@ -126,7 +124,6 @@ export class SwipeContainer {
    */
   async loadMorePets() {
     try {
-      console.log(`📡 Obteniendo mascotas de la API (página ${this.page})...`);
       const newPets = await petAPI.fetchPets(this.page, 10);
 
       if (newPets.length === 0) {
@@ -140,7 +137,6 @@ export class SwipeContainer {
 
       this.petsList.push(...newPets);
       this.page++;
-      console.log(`✅ Total mascotas en cache: ${this.petsList.length}`);
       return true;
     } catch (error) {
       if (error.message === 'UNAUTHORIZED') {
@@ -261,18 +257,15 @@ export class SwipeContainer {
     // Configurar callbacks
     this.matchModal
       .on('chat', (petData, data) => {
-        console.log('💬 Ir a chat para:', petData.name);
         // Será manejado por Persona D (Chat)
         window.location.href = `/chat/${data.chatId || petData.id}`;
       })
       .on('continue', () => {
-        console.log('👉 Continuando con swipe flow...');
         // Avanzar al siguiente
         this.nextPet();
         this.checkAndLoadMore();
       })
       .on('close', () => {
-        console.log('❌ Modal cerrado sin acción');
         // Avanzar al siguiente
         this.nextPet();
         this.checkAndLoadMore();
@@ -288,7 +281,6 @@ export class SwipeContainer {
   async checkAndLoadMore() {
     // Si quedan pocas mascotas, cargar más
     if (this.getRemainingCount() <= 2) {
-      console.log('⏳ Precargando más mascotas...');
       await this.loadMorePets();
     }
   }

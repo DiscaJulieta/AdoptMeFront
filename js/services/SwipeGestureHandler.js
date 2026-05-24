@@ -59,8 +59,6 @@ export class SwipeGestureHandler {
     // Cambiar cursor visual
     card.style.cursor = 'grabbing';
     card.style.transition = 'none';
-
-    console.log('🟢 Swipe iniciado en:', this.startX);
   }
 
   /**
@@ -127,15 +125,12 @@ export class SwipeGestureHandler {
 
     if (isSwipe) {
       if (deltaX > 0) {
-        console.log('➡️ Swipe DERECHA detectado');
         this.dispatchSwipeEvent('swiperight', deltaX, velocity);
       } else {
-        console.log('⬅️ Swipe IZQUIERDA detectado');
         this.dispatchSwipeEvent('swipeleft', Math.abs(deltaX), velocity);
       }
     } else {
       // Swipe inválido - resetear animación
-      console.log('❌ Swipe cancelado (insuficiente distancia)');
       card.style.transition = `transform 300ms cubic-bezier(0.4, 0, 0.2, 1)`;
       card.style.transform = '';
       card.style.opacity = 1;

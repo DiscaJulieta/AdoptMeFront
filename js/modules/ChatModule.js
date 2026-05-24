@@ -65,7 +65,6 @@ export function createChatModule() {
 
     currentComponent.mount(container);
 
-    console.log(`ChatModule: Mounted chat ${chatId}`);
     return currentComponent;
   }
 
@@ -87,8 +86,6 @@ export function createChatModule() {
     // Clear references
     currentComponent = null;
     currentContainer = null;
-
-    console.log('ChatModule: Unmounted and cleaned up');
   }
 
   // Return the module API

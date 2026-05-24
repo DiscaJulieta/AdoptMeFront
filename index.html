@@ -3,14 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AdoptMe - Chat</title>
+    <title>AdoptMe - Swipe</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/main.css">
 </head>
 <body class="bg-gray-50 text-gray-900 font-sans">
     <div id="app" class="max-w-md mx-auto min-h-screen bg-white shadow-lg overflow-hidden">
-        <!-- Chat module will be mounted here -->
+        <!-- Swipe view will be mounted here by router -->
+        <div id="swipe-container"></div>
     </div>
+    <!-- Router auto-initializes on import and handles auth guards -->
+    <script src="js/core/router.js" type="module"></script>
     <script src="js/app.js" type="module"></script>
 </body>
 </html>

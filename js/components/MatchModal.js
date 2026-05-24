@@ -136,19 +136,22 @@ export class MatchModal {
     const closeBtn = this.element.querySelector('#match-close-btn');
 
     chatBtn?.addEventListener('click', () => {
-      console.log('💬 Navegando a chat para:', this.pet.name);
+      const chatId = this.matchData.chatId || this.matchData.id;
+      if (chatId) {
+        window.location.href = `chat.html#/chat/${chatId}`;
+      } else {
+        console.error('MatchModal: No chatId available for navigation');
+      }
       this.callbacks.onChat?.(this.pet, this.matchData);
       this.close();
     });
 
     continueBtn?.addEventListener('click', () => {
-      console.log('👉 Continuando con mascotas...');
       this.callbacks.onContinue?.();
       this.close();
     });
 
     closeBtn?.addEventListener('click', () => {
-      console.log('❌ Modal cerrado');
       this.callbacks.onClose?.();
       this.close();
     });
@@ -175,7 +178,6 @@ export class MatchModal {
     }
 
     this.isOpen = true;
-    console.log('🎉 Match modal abierto para:', this.pet.name);
 
     // Trigger confetti (opcional)
     this.triggerConfetti();

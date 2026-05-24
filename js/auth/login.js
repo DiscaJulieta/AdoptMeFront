@@ -1,4 +1,4 @@
-import { authService } from './authService.js';
+import { authService } from '../services/authService.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('login-form');
@@ -21,10 +21,8 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const result = await authService.login(email, password);
             if (result.success) {
-                // Redirect back to returnUrl or home
-                const urlParams = new URLSearchParams(window.location.search);
-                const returnUrl = urlParams.get('returnUrl') || '/index.html';
-                window.location.href = returnUrl;
+                // Redirect to swipe page (index.html) using hash routing
+                window.location.href = 'index.html#/swipe';
             }
         } catch (error) {
             console.error('Login implementation error:', error);

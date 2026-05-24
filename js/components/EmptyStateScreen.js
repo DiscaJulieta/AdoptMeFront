@@ -235,22 +235,18 @@ export class EmptyStateScreen {
     const homeBtn = this.element?.querySelector('#empty-home-btn');
 
     refreshBtn?.addEventListener('click', () => {
-      console.log('🔄 Recargando mascotas...');
       this.callbacks.onRefresh?.();
     });
 
     retryBtn?.addEventListener('click', () => {
-      console.log('🔄 Reintentando carga...');
       this.callbacks.onRetry?.();
     });
 
     matchesBtn?.addEventListener('click', () => {
-      console.log('💕 Ir a matches...');
       window.location.href = '/matches'; // Será Persona D
     });
 
     homeBtn?.addEventListener('click', () => {
-      console.log('🏠 Ir a inicio...');
       window.location.href = '/';
     });
   }

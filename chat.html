@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AdoptMe - Chat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/chat.css">
+</head>
+<body class="bg-gray-50 text-gray-900 font-sans">
+    <div id="chat-app" class="max-w-md mx-auto min-h-screen bg-white shadow-lg overflow-hidden">
+        <!-- Loading state -->
+        <div id="chat-loading" class="flex flex-col items-center justify-center min-h-screen">
+            <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500 mb-4"></div>
+            <p class="text-gray-600 text-lg">Cargando chat...</p>
+        </div>
+
+        <!-- Error state (hidden by default) -->
+        <div id="chat-error" class="hidden flex flex-col items-center justify-center min-h-screen p-8 text-center">
+            <div class="text-gray-500 text-6xl mb-4">💬</div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">Chat no encontrado</h2>
+            <p class="text-gray-600 mb-6">El chat que buscás no existe o no tenés acceso a él.</p>
+            <a href="#/swipe" class="bg-blue-500 hover:bg-blue-600 text-white font-semibold px-6 py-3 rounded-xl transition-colors">
+                Volver al Swipe
+            </a>
+        </div>
+
+        <!-- Chat content container (initially hidden) -->
+        <div id="chat-content" class="hidden h-full"></div>
+    </div>
+
+    <script type="module">
+        import { authGuard } from './js/core/authGuard.js';
+        import { router } from './js/core/router.js';
+        import { createChatModule } from './js/modules/ChatModule.js';
+
+        // Re-initialize router without auto-guards for this standalone page
+        // chat.html handles its own auth check below
+        router.init({ skipGuards: true });
+
+        // DOM elements
+        const loadingEl = document.getElementById('chat-loading');
+        const errorEl = document.getElementById('chat-error');
+        const contentEl = document.getElementById('chat-content');
+        const containerEl = document.getElementById('chat-app');
+
+        /**
+         * Show loading state
+         */
+        function showLoading() {
+            loadingEl.classList.remove('hidden');
+            errorEl.classList.add('hidden');
+            contentEl.classList.add('hidden');
+        }
+
+        /**
+         * Show error state
+         * @param {string} message - Error message to display
+         */
+        function showError(message) {
+            loadingEl.classList.add('hidden');
+            errorEl.classList.remove('hidden');
+            contentEl.classList.add('hidden');
+            
+            const errorTitle = errorEl.querySelector('h2');
+            const errorMsg = errorEl.querySelector('p');
+            
+            if (message) {
+                errorTitle.textContent = 'Error';
+                errorMsg.textContent = message;
+            }
+        }
+
+        /**
+         * Show chat content
+         */
+        function showContent() {
+            loadingEl.classList.add('hidden');
+            errorEl.classList.add('hidden');
+            contentEl.classList.remove('hidden');
+        }
+
+        /**
+         * Initialize chat page
+         */
+        function initChat() {
+            // Show loading state
+            showLoading();
+
+            // Check authentication
+            if (!authGuard.isAuthenticated()) {
+                authGuard.redirectToLogin();
+                return;
+            }
+
+            // Get current route and extract chatId
+            const currentRoute = router.getCurrentRoute();
+            
+            if (!currentRoute || !currentRoute.params || !currentRoute.params.id) {
+                console.error('[ChatPage] Missing chatId in route params');
+                showError('ID de chat inválido. Por favor, intentá de nuevo.');
+                return;
+            }
+
+            const chatId = currentRoute.params.id;
+            console.log('[ChatPage] Initializing chat with ID:', chatId);
+
+            // Validate chatId is not empty
+            if (!chatId || chatId.trim() === '') {
+                console.error('[ChatPage] Empty chatId');
+                showError('ID de chat inválido.');
+                return;
+            }
+
+            // Create and mount chat module
+            try {
+                const chatModule = createChatModule();
+                chatModule.mount(chatId, contentEl);
+                showContent();
+                console.log('[ChatPage] Chat mounted successfully');
+            } catch (error) {
+                console.error('[ChatPage] Error mounting chat:', error);
+                showError('Error al cargar el chat. Por favor, intentá de nuevo.');
+            }
+        }
+
+        // Initialize when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initChat);
+        } else {
+            initChat();
+        }
+    </script>
+</body>
+</html>

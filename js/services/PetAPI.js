@@ -16,7 +16,7 @@ export class PetAPI {
    * @returns {string | null}
    */
   getToken() {
-    return localStorage.getItem('token') || localStorage.getItem('jwt');
+    return localStorage.getItem('adoptme_token');
   }
 
   /**
@@ -71,7 +71,6 @@ export class PetAPI {
       }
 
       const data = await response.json();
-      console.log(`📦 Mascotas obtenidas: página ${page}, total ${data.length || 0}`);
       return data || [];
     } catch (error) {
       console.error('❌ Error al obtener mascotas:', error.message);
@@ -86,11 +85,11 @@ export class PetAPI {
    */
   async sendLike(petId) {
     try {
-      const url = `${this.baseURL}/swipes/like`;
+      const url = `${this.baseURL}/swipes`;
       const response = await fetch(url, {
         method: 'POST',
         headers: this.getHeaders(),
-        body: JSON.stringify({ petId }),
+        body: JSON.stringify({ petId, action: 'like' }),
       });
 
       if (!response.ok) {
@@ -98,7 +97,6 @@ export class PetAPI {
       }
 
       const data = await response.json();
-      console.log(`❤️ Like registrado para mascota ${petId}:`, data);
       return data;
     } catch (error) {
       console.error(`❌ Error al registrar like:`, error.message);
@@ -113,11 +111,11 @@ export class PetAPI {
    */
   async sendDislike(petId) {
     try {
-      const url = `${this.baseURL}/swipes/dislike`;
+      const url = `${this.baseURL}/swipes`;
       const response = await fetch(url, {
         method: 'POST',
         headers: this.getHeaders(),
-        body: JSON.stringify({ petId }),
+        body: JSON.stringify({ petId, action: 'dislike' }),
       });
 
       if (!response.ok) {
@@ -125,7 +123,6 @@ export class PetAPI {
       }
 
       const data = await response.json();
-      console.log(`✖️ Dislike registrado para mascota ${petId}:`, data);
       return data;
     } catch (error) {
       console.error(`❌ Error al registrar dislike:`, error.message);
