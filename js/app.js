@@ -3,6 +3,9 @@ import { authService } from './auth/authService.js';
 
 console.log('AdoptMe Frontend Initialized');
 
+// Chat module instance reference
+let chatModule = null;
+
 // Bootstrap application
 document.addEventListener('DOMContentLoaded', () => {
     const app = document.getElementById('app');
