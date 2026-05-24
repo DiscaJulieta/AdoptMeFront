@@ -5,7 +5,7 @@
  * for mounting and unmounting the chat component.
  */
 
-import { authService } from '../services/authService.js';
+import { authService } from '../auth/authService.js';
 import { chatStore, chatActions } from '../state/chatStore.js';
 import { createChatComponent } from '../components/ChatComponent.js';
 

@@ -9,6 +9,7 @@ import { renderMessage } from './MessageComponent.js';
 import { sendMessage, getMessages, retryMessage } from '../services/chatService.js';
 import { createPollingService } from '../services/PollingService.js';
 import * as chatService from '../services/chatService.js';
+import { authService } from '../auth/authService.js';
 
 /**
  * Escape HTML to prevent XSS attacks
@@ -44,7 +45,7 @@ export function createChatComponent(chatId) {
    * @returns {string|number|null} Current user ID
    */
   function getCurrentUserId() {
-    const token = localStorage.getItem('adoptme_token');
+    const token = authService.getToken();
     if (!token) return null;
     
     // Simple JWT decode to get user ID

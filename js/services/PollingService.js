@@ -5,6 +5,7 @@
  */
 
 import { appendMessage, incrementUnread, hasMessage } from '../state/chatStore.js';
+import { authService } from '../auth/authService.js';
 
 const POLLING_INTERVAL_MS = 5000; // 5 seconds
 
@@ -102,7 +103,7 @@ class PollingService {
    * @returns {string|number|null} Current user ID
    */
   getCurrentUserId() {
-    const token = localStorage.getItem('adoptme_token');
+    const token = authService.getToken();
     if (!token) return null;
     try {
       const base64Url = token.split('.')[1];

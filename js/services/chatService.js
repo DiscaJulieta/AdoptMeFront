@@ -1,9 +1,9 @@
 /**
  * Chat Service
- * Service layer for chat-related API calls using the API client
+ * Service layer for chat-related API calls using the shared API client
  */
 
-import { request } from './api.js';
+import { apiClient } from '../api/client.js';
 
 /**
  * Fetch messages for a specific chat with pagination
@@ -14,7 +14,10 @@ import { request } from './api.js';
  */
 export async function getMessages(chatId, page = 0, size = 10) {
   const endpoint = `/chats/${chatId}/messages?page=${page}&size=${size}`;
-  return await request(endpoint, { method: 'GET' });
+  const response = await apiClient.get(endpoint);
+  if (!response) throw new Error('Authentication failed');
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return await response.json();
 }
 
 /**
@@ -25,10 +28,10 @@ export async function getMessages(chatId, page = 0, size = 10) {
  */
 export async function sendMessage(chatId, text) {
   const endpoint = `/chats/${chatId}/messages`;
-  return await request(endpoint, {
-    method: 'POST',
-    body: JSON.stringify({ text })
-  });
+  const response = await apiClient.post(endpoint, { text });
+  if (!response) throw new Error('Authentication failed');
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  return await response.json();
 }
 
 /**
