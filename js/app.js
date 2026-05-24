@@ -1,40 +1,61 @@
-import './config.js';
-import { authService } from './auth/authService.js';
+import { APP_CONFIG } from './config.js';
+import { SwipeContainer } from './components/SwipeContainer.js';
+import { mockPets } from './mockData.js';
 
-console.log('AdoptMe Frontend Initialized');
+let swipeContainer = null;
 
-// Chat module instance reference
-let chatModule = null;
+document.addEventListener('DOMContentLoaded', async () => {
+    console.log('🎯 AdoptMe Frontend Inicializando (Fase 2)...');
 
-// Bootstrap application
-document.addEventListener('DOMContentLoaded', () => {
-    const app = document.getElementById('app');
-    if (app) {
-        console.log('App mounting...');
-        
-        // Check if user is authenticated
-        if (!authService.isAuthenticated()) {
-            console.log('No session found, redirecting to login...');
-            window.location.href = '/login.html';
-            return;
-        }
+    // Inicializar contenedor de swipe (vacío al inicio)
+    swipeContainer = new SwipeContainer('swipe-container', []);
 
-        console.log('Session restored from LocalStorage');
+    // Escuchar eventos de error de autorización
+    window.addEventListener('unauthorized', () => {
+        console.warn('🔐 Sesión expirada. Redirigiendo a login...');
+        // Redirigir a login (será Persona C - Auth)
+        window.location.href = '/login';
+    });
 
-        // Global Logout Listener (if profile btn exists)
-        const profileBtn = document.getElementById('profile-btn');
-        if (profileBtn) {
-            profileBtn.title = 'Click para cerrar sesión';
-            profileBtn.addEventListener('click', () => {
-                if (confirm('¿Cerrar sesión?')) {
-                    authService.logout();
-                }
-            });
-        }
+    // Cargar mascotas de la API
+    const loaded = await swipeContainer.loadMorePets();
+
+    if (loaded) {
+        swipeContainer.render();
+        console.log(`✅ App montada con ${swipeContainer.getRemainingCount()} mascotas.`);
+    } else {
+        // Fallback a mock data si API no está disponible
+        console.warn('⚠️ API no disponible. Usando mock data para desarrollo...');
+        swipeContainer.petsList = mockPets;
+        swipeContainer.render();
     }
+
+    // Listeners para botones de acción
+    const likeBtn = document.getElementById('like-btn');
+    const dislikeBtn = document.getElementById('dislike-btn');
+
+    likeBtn?.addEventListener('click', handleLike);
+    dislikeBtn?.addEventListener('click', handleDislike);
 });
 
-// Global Event Listeners
-window.addEventListener('app:forbidden', (e) => {
-    alert(e.detail.message); // Simple alert for now, can be a toast later
-});
+/**
+ * Manejo de like desde botón
+ */
+async function handleLike() {
+    const current = swipeContainer.getCurrentPet();
+    if (current) {
+        console.log(`❤️ Like a: ${current.name}`);
+        await swipeContainer.handleSwipeRight();
+    }
+}
+
+/**
+ * Manejo de dislike desde botón
+ */
+async function handleDislike() {
+    const current = swipeContainer.getCurrentPet();
+    if (current) {
+        console.log(`✖️ Dislike a: ${current.name}`);
+        await swipeContainer.handleSwipeLeft();
+    }
+}
