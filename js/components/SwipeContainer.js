@@ -1,11 +1,13 @@
 /**
  * SwipeContainer Component
- * Gestiona el stack de tarjetas, renderización, gestos y API
- * Fase 2: Integración con API + Gesture Handler
+ * Gestiona el stack de tarjetas, renderización, gestos, API y modales
+ * Fase 3: Modal de Match + Empty States
  */
 
 import { SwipeCard } from './SwipeCard.js';
 import { SwipeGestureHandler } from '../services/SwipeGestureHandler.js';
+import { MatchModal } from './MatchModal.js';
+import { EmptyStateScreen } from './EmptyStateScreen.js';
 import { petAPI } from '../services/PetAPI.js';
 
 export class SwipeContainer {
@@ -16,10 +18,15 @@ export class SwipeContainer {
     this.currentIndex = 0;
     this.isProcessing = false; // Flag para evitar doble-click
     this.page = 0; // Para paginación API
+    this.isAllowedToLoad = true; // Flag para prevenir carga infinita
 
     if (!this.container) {
       throw new Error(`Container with id "${containerId}" not found`);
     }
+
+    // Componentes de UI
+    this.matchModal = null;
+    this.emptyState = null;
 
     // Gesture handler
     this.gestureHandler = new SwipeGestureHandler(this.container);
@@ -84,27 +91,34 @@ export class SwipeContainer {
   }
 
   /**
-   * Muestra estado vacío con opción de refresh
+   * Muestra estado vacío con opciones de acción
    */
   showEmptyState() {
-    this.container.innerHTML = `
-      <div class="absolute inset-0 flex flex-col items-center justify-center">
-        <div class="text-6xl mb-4">🎉</div>
-        <h3 class="text-xl font-bold text-gray-900 mb-2">Sin más mascotas</h3>
-        <p class="text-gray-600 text-center px-4 mb-6">
-          Ya revisaste todas las mascotas. ¡Vuelve más tarde!
-        </p>
-        <button id="refresh-btn" class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
-          Recargar
-        </button>
-      </div>
-    `;
+    // Destruir gesture handler
+    this.gestureHandler.disable();
 
-    // Listener para refresh
-    document.getElementById('refresh-btn')?.addEventListener('click', () => {
-      this.reset();
-      this.loadMorePets();
-    });
+    // Limpiar contenedor
+    this.container.innerHTML = '';
+
+    // Crear pantalla de estado vacío
+    this.emptyState = new EmptyStateScreen();
+
+    this.emptyState
+      .on('refresh', () => {
+        console.log('🔄 Usuario solicitó recargar...');
+        this.reset();
+        this.loadMorePets();
+      })
+      .on('retry', () => {
+        console.log('🔄 Usuario solicitó reintentar...');
+        this.loadMorePets();
+      })
+      .showEmpty();
+
+    const element = this.emptyState.getElement();
+    if (element) {
+      this.container.appendChild(element);
+    }
   }
 
   /**
@@ -161,12 +175,13 @@ export class SwipeContainer {
 
       // Verificar si es un match
       if (result.isMatch) {
-        this.showMatchNotification(pet, result);
+        this.showMatchModal(pet, result);
+        // NO avanzar inmediatamente, esperar a que el usuario cierre el modal
+      } else {
+        // Avanzar al siguiente si no hay match
+        this.nextPet();
+        this.checkAndLoadMore();
       }
-
-      // Avanzar al siguiente
-      this.nextPet();
-      this.checkAndLoadMore();
     } catch (error) {
       console.error('❌ Error en like:', error.message);
       if (error.message === 'UNAUTHORIZED') {
@@ -237,32 +252,34 @@ export class SwipeContainer {
   }
 
   /**
-   * Muestra notificación de match
+   * Muestra modal de match (Fase 3: Completo)
    */
-  showMatchNotification(pet, matchData) {
-    const modal = document.createElement('div');
-    modal.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-[1000]';
-    modal.innerHTML = `
-      <div class="bg-white rounded-2xl p-8 max-w-sm text-center animate-bounce">
-        <div class="text-6xl mb-4">💕</div>
-        <h2 class="text-2xl font-bold text-gray-900 mb-2">¡Es un match!</h2>
-        <p class="text-gray-600 mb-6">
-          ¡${pet.name} también te gustó! Puedes empezar a chatear ahora.
-        </p>
-        <button class="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition mb-2">
-          Ir al chat
-        </button>
-        <button id="close-match" class="w-full px-4 py-2 bg-gray-200 text-gray-900 rounded-lg hover:bg-gray-300 transition">
-          Continuar viendo
-        </button>
-      </div>
-    `;
+  showMatchModal(pet, matchData) {
+    // Crear modal
+    this.matchModal = new MatchModal(pet, matchData);
 
-    document.body.appendChild(modal);
+    // Configurar callbacks
+    this.matchModal
+      .on('chat', (petData, data) => {
+        console.log('💬 Ir a chat para:', petData.name);
+        // Será manejado por Persona D (Chat)
+        window.location.href = `/chat/${data.chatId || petData.id}`;
+      })
+      .on('continue', () => {
+        console.log('👉 Continuando con swipe flow...');
+        // Avanzar al siguiente
+        this.nextPet();
+        this.checkAndLoadMore();
+      })
+      .on('close', () => {
+        console.log('❌ Modal cerrado sin acción');
+        // Avanzar al siguiente
+        this.nextPet();
+        this.checkAndLoadMore();
+      });
 
-    modal.querySelector('#close-match').addEventListener('click', () => {
-      modal.remove();
-    });
+    // Abrir modal
+    this.matchModal.open();
   }
 
   /**

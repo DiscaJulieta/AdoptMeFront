@@ -1,6 +1,6 @@
 /* 
  * AdoptMe - Estilos globales y componentes
- * Fase 2: Animaciones de swipe, transiciones
+ * Fase 3: Match Modal + Empty States
  */
 
 :root {
@@ -54,7 +54,76 @@ html {
   }
 }
 
-/* === Match notification bounce === */
+/* === Modal animations === */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.85) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes scaleOut {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.85) translateY(-20px);
+  }
+}
+
+/* === Confetti animation === */
+@keyframes fall {
+  to {
+    opacity: 0;
+    transform: translateY(100vh) rotate(720deg);
+  }
+}
+
+/* === Float animation (empty state) === */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+/* === Pulse animation === */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* === Bounce animation === */
 @keyframes bounce {
   0%, 100% {
     transform: translateY(0);
@@ -66,6 +135,10 @@ html {
 
 .animate-bounce {
   animation: bounce 0.6s ease-in-out;
+}
+
+.animate-fadeIn {
+  animation: fadeIn 300ms ease-out;
 }
 
 /* === Button hover effects === */
@@ -91,6 +164,15 @@ button {
   cursor: not-allowed;
 }
 
+/* === Modal styles === */
+.match-modal-wrapper {
+  /* Empty state screen */
+}
+
+.match-backdrop {
+  backdrop-filter: blur(4px);
+}
+
 /* === Loading state === */
 .card-loading {
   opacity: 0.6;
@@ -111,6 +193,11 @@ button {
   .swipe-card {
     -webkit-user-select: none;
     -webkit-touch-callout: none;
+  }
+
+  /* Modal responsive */
+  .bg-white {
+    margin: 0 1rem;
   }
 }
 
@@ -152,4 +239,22 @@ img {
 
 .swipe-left-bg {
   background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), transparent);
+}
+
+/* === Scrollbar styling (bonito) === */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }
