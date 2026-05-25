@@ -77,7 +77,7 @@ export class MatchModal {
             src="${this.pet.image}" 
             alt="${this.pet.name}"
             class="w-full h-full object-cover"
-            onerror="this.src='https://via.placeholder.com/300x200?text=Foto+no+disponible'"
+            onerror="this.onerror=null;this.src='assets/logo.svg'"
           >
         </div>
 

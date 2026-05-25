@@ -12,6 +12,13 @@
 const API_BASE_URL = 'http://localhost:8080/api';
 const JWT_STORAGE_KEY = 'adoptme_token';
 
+function buildAuthHeader(token) {
+  if (!token || typeof token !== 'string') return null;
+  const normalized = token.replace(/^Bearer\s+/i, '').trim();
+  if (!normalized) return null;
+  return `Bearer ${normalized}`;
+}
+
 /**
  * Reads the JWT token from localStorage
  * @returns {string|null} The token or null if not found
@@ -42,6 +49,7 @@ function dispatchAuthInvalid(statusCode) {
 export async function request(endpoint, options = {}) {
   const url = `${API_BASE_URL}${endpoint}`;
   const token = getToken();
+  const authHeader = buildAuthHeader(token);
 
   // Build headers
   const headers = {
@@ -50,8 +58,8 @@ export async function request(endpoint, options = {}) {
   };
 
   // Add Authorization header if token exists
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
+  if (authHeader) {
+    headers['Authorization'] = authHeader;
   }
 
   // Merge headers into options

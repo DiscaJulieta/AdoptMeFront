@@ -34,9 +34,17 @@ function mountSwipeView() {
         if (loaded) {
             swipeContainer.render();
         } else {
-            console.warn('⚠️ API no disponible. Usando mock data para desarrollo...');
-            swipeContainer.petsList = mockPets;
-            swipeContainer.render();
+            const loadError = swipeContainer.getLastLoadError?.();
+
+            if (loadError?.status === 0) {
+                console.warn('⚠️ API no disponible. Usando mock data para desarrollo...');
+                swipeContainer.petsList = mockPets;
+                swipeContainer.render();
+                return;
+            }
+
+            const errorMessage = loadError?.message || 'No pudimos cargar mascotas en este momento.';
+            swipeContainer.showApiErrorState(errorMessage);
         }
     });
 
@@ -76,6 +84,12 @@ router.onRouteChange((route) => {
         mountSwipeView();
     }
 });
+
+// Handle initial route when router was initialized before this subscriber
+const initialRoute = router.getCurrentRoute();
+if (initialRoute?.path === '/swipe') {
+    mountSwipeView();
+}
 
 // Export for external access if needed
 export { swipeContainer, mountSwipeView };

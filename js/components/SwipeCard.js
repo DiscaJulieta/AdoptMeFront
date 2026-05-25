@@ -25,7 +25,7 @@ export class SwipeCard {
           src="${this.pet.image}" 
           alt="${this.pet.name}"
           class="w-full h-full object-cover"
-          onerror="this.src='https://via.placeholder.com/400x500?text=Foto+no+disponible'"
+          onerror="this.onerror=null;this.src='assets/logo.svg'"
         >
         
         <!-- Overlay degradado (texto legible abajo) -->

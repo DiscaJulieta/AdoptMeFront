@@ -9,6 +9,11 @@ import { apiClient } from '../api/client.js';
 
 const JWT_STORAGE_KEY = 'adoptme_token';
 
+function normalizeToken(token) {
+  if (!token || typeof token !== 'string') return null;
+  return token.replace(/^Bearer\s+/i, '').trim();
+}
+
 /**
  * Decode JWT token payload to extract user information
  * @param {string} token - JWT token
@@ -37,7 +42,14 @@ export const authService = {
    * @returns {string|null} The token or null if not found
    */
   getJwt() {
-    return localStorage.getItem(JWT_STORAGE_KEY);
+    const stored = localStorage.getItem(JWT_STORAGE_KEY);
+    const normalized = normalizeToken(stored);
+
+    if (stored && normalized && stored !== normalized) {
+      localStorage.setItem(JWT_STORAGE_KEY, normalized);
+    }
+
+    return normalized;
   },
 
   /**
@@ -53,7 +65,12 @@ export const authService = {
    * @param {string} token - The JWT token to store
    */
   setJwt(token) {
-    localStorage.setItem(JWT_STORAGE_KEY, token);
+    const normalized = normalizeToken(token);
+    if (!normalized) {
+      localStorage.removeItem(JWT_STORAGE_KEY);
+      return;
+    }
+    localStorage.setItem(JWT_STORAGE_KEY, normalized);
   },
 
   /**
@@ -80,14 +97,18 @@ export const authService = {
   },
 
   /**
-   * Authenticates user with email/password and stores JWT token
-   * @param {string} email - User email
+   * Authenticates user and stores JWT token
+   * Backend expects `username` in the request payload.
+   * @param {string} email - User email/username value
    * @param {string} password - User password
    * @returns {Promise<{success: boolean, token: string}>} Login result
    */
   async login(email, password) {
     try {
-      const response = await apiClient.post('/auth/login', { email, password });
+      const response = await apiClient.post('/auth/login', {
+        username: email,
+        password,
+      });
       
       if (!response.ok) {
         const errorData = await response.json();

@@ -1,19 +1,27 @@
 import { API_BASE_URL } from '../config.js';
 
+function buildAuthHeader(token) {
+    if (!token || typeof token !== 'string') return null;
+    const normalized = token.replace(/^Bearer\s+/i, '').trim();
+    if (!normalized) return null;
+    return `Bearer ${normalized}`;
+}
+
 /**
  * Basic API client wrapper with interceptor-like behavior
  */
 export const apiClient = {
     async request(endpoint, options = {}) {
         const token = localStorage.getItem('adoptme_token');
+        const authHeader = buildAuthHeader(token);
         
         const headers = {
             'Content-Type': 'application/json',
             ...options.headers,
         };
 
-        if (token) {
-            headers['Authorization'] = `Bearer ${token}`;
+        if (authHeader) {
+            headers['Authorization'] = authHeader;
         }
 
         const config = {

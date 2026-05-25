@@ -19,6 +19,7 @@ export class SwipeContainer {
     this.isProcessing = false; // Flag para evitar doble-click
     this.page = 0; // Para paginación API
     this.isAllowedToLoad = true; // Flag para prevenir carga infinita
+    this.lastLoadError = null;
 
     if (!this.container) {
       throw new Error(`Container with id "${containerId}" not found`);
@@ -120,11 +121,40 @@ export class SwipeContainer {
   }
 
   /**
+   * Muestra estado de error de API con opción de reintento
+   */
+  showApiErrorState(errorMessage = 'No pudimos cargar las mascotas por un error del servidor.') {
+    this.gestureHandler.disable();
+    this.container.innerHTML = '';
+
+    this.emptyState = new EmptyStateScreen();
+    this.emptyState
+      .on('retry', async () => {
+        const loaded = await this.loadMorePets();
+        if (loaded) {
+          this.render();
+          return;
+        }
+
+        if (this.lastLoadError?.status && this.lastLoadError.status !== 0) {
+          this.showApiErrorState(this.lastLoadError.message);
+        }
+      })
+      .showError(errorMessage);
+
+    const element = this.emptyState.getElement();
+    if (element) {
+      this.container.appendChild(element);
+    }
+  }
+
+  /**
    * Carga más mascotas de la API
    */
   async loadMorePets() {
     try {
       const newPets = await petAPI.fetchPets(this.page, 10);
+      this.lastLoadError = null;
 
       if (newPets.length === 0) {
         console.warn('⚠️ API retornó lista vacía');
@@ -139,9 +169,12 @@ export class SwipeContainer {
       this.page++;
       return true;
     } catch (error) {
-      if (error.message === 'UNAUTHORIZED') {
+      this.lastLoadError = error;
+      if (error.status === 401 || error.message === 'UNAUTHORIZED') {
         console.error('🔐 Token expirado o inválido');
         window.dispatchEvent(new CustomEvent('unauthorized'));
+      } else if (error.status === 403 || error.message === 'FORBIDDEN') {
+        console.warn('🚫 Sin permisos para ver mascotas');
       } else {
         console.error('❌ Error cargando mascotas:', error.message);
       }
@@ -180,8 +213,10 @@ export class SwipeContainer {
       }
     } catch (error) {
       console.error('❌ Error en like:', error.message);
-      if (error.message === 'UNAUTHORIZED') {
+      if (error.status === 401 || error.message === 'UNAUTHORIZED') {
         window.dispatchEvent(new CustomEvent('unauthorized'));
+      } else if (error.status === 403 || error.message === 'FORBIDDEN') {
+        console.warn('🚫 Acción bloqueada por permisos (like)');
       }
       // Resetear card en error
       this.render();
@@ -215,8 +250,10 @@ export class SwipeContainer {
       this.checkAndLoadMore();
     } catch (error) {
       console.error('❌ Error en dislike:', error.message);
-      if (error.message === 'UNAUTHORIZED') {
+      if (error.status === 401 || error.message === 'UNAUTHORIZED') {
         window.dispatchEvent(new CustomEvent('unauthorized'));
+      } else if (error.status === 403 || error.message === 'FORBIDDEN') {
+        console.warn('🚫 Acción bloqueada por permisos (dislike)');
       }
       // Resetear card en error
       this.render();
@@ -327,5 +364,12 @@ export class SwipeContainer {
    */
   getRemainingCount() {
     return Math.max(0, this.petsList.length - this.currentIndex);
+  }
+
+  /**
+   * Devuelve el último error de carga de mascotas
+   */
+  getLastLoadError() {
+    return this.lastLoadError;
   }
 }
